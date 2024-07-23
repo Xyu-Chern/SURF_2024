@@ -10,7 +10,6 @@ from typing import Union
 
 
 def convert_dict_to_tensor(data_dict):
-
     for key, value in data_dict.items():
         if not isinstance(value, (int, float, list, np.ndarray)):
             raise ValueError(f"Unsupported value type for key '{key}': {type(value)}")
@@ -48,3 +47,9 @@ def convert_features_to_tensor(state, next_state, action, intrinsic_reward):
     action_tensor = torch.tensor(action)
     i_reward_tensor = torch.tensor(intrinsic_reward)
 
+
+def convert_state_to_tensor(input_state: torch.Tuple):
+    ex_dict = input_state[0]
+    tensor = convert_dict_to_tensor(ex_dict)
+
+    return tensor

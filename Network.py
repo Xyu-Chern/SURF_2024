@@ -7,6 +7,7 @@ import numpy as np
 import minari
 from minari import DataCollector
 from typing import Union
+import Help
 
 Activation = Union[str, nn.Module]
 
@@ -25,9 +26,9 @@ device = None
 epochs = 5
 learning_rate = 0.001
 
-observation_size = 12
+observation_size = 8
 output_size = 1
-hidden_size = 3
+hidden_size = 4
 observations = []
 actions = []
 rewards = []
@@ -122,10 +123,10 @@ def convert_tuple_to_tensor(data_tuple, dtype=torch.float32):
 
 
 def get_train_observation():
-
     env = gym.make('PointMaze_UMazeDense-v3')
     state = env.reset()
-    train_observation = convert_tuple_to_tensor(state)
+    train_observation = Help.convert_state_to_tensor(state)
+    train_observation = train_observation.reshape(1, 8)
     return train_observation
 
 

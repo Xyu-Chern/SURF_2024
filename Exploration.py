@@ -25,33 +25,33 @@ class Normalizer:
         self.epsilon = epsilon
         self.count = 0
 
-    def normalize(self, obs):
-        return (obs - self.mean) / (np.sqrt(self.var) + self.epsilon)
+    def normalize(self, x):
+        return (x - self.mean) / (np.sqrt(self.var) + self.epsilon)
 
-    def update(self, obs):
+    def update(self, x):
         self.count += 1
         if self.count == 1:
-            self.mean = obs
-            self.var = np.zeros_like(obs)
+            self.mean = x
+            self.var = np.zeros_like(x)
         else:
             old_mean = self.mean.copy()
-            self.mean += (obs - self.mean) / self.count
-            self.var += (obs - old_mean) * (obs - self.mean)
+            self.mean += (x - self.mean) / self.count
+            self.var += (x - old_mean) * (x - self.mean)
 
 
-def calculate_intrinsic_reward(next_state: torch.Tensor,
+def calculate_intrinsic_reward(input_state: torch.Tensor,
                                target_network: nn.Module,
                                predictor_network: nn.Module):
 
-    f_star = target_network.forward(next_state)
-    f_theta = predictor_network.forward(next_state)
+    f_star = target_network.forward(input_state)
+    f_theta = predictor_network.forward(input_state)
     intrinsic_reward = (abs(f_theta - f_star))**2
     return intrinsic_reward
 
 
 # set normalizer
-state_normalizer = Normalizer
-reward_normalizer = Normalizer
+state_normalizer = Normalizer(4)
+reward_normalizer = Normalizer(1)
 
 
 
@@ -65,19 +65,12 @@ for epochs in range(100):
 
     optimizer.zero_grad()
     train_observation = Network.get_train_observation()
-    f_star = target_network.forward(train_observation)
-    logits = predictor_network.forward(train_observation)
+    f_star = target_network(train_observation)
+    logits = predictor_network(train_observation)
 
     loss = F.cross_entropy(logits, f_star)
     loss.backward()
     optimizer.step()
-
-
-
-
-
-
-
 
 
 env = gym.make('PointMaze_UMazeDense-v3')
@@ -96,16 +89,16 @@ for _ in range(1, state_norm_steps + 1):
     state = next_state
 
 
-batches = {i: [] for i in range(Num_rollouts)}
+batches = {i + 1: [] for i in range(Num_rollouts)}
 state = env.reset()
 for i in range(1, Num_rollouts + 1):
     for j in range(1, Len_rollout + 1):
         action = env.action_space.sample()
         next_state, reward, done, truncated, info = env.step(action)
-        intrinsic_reward = calculate_intrinsic_reward(Help.convert_tuple_to_tensor(next_state),
+        intrinsic_reward = calculate_intrinsic_reward(Help.convert_dict_to_tensor(next_state),
                                                       target_network,
                                                       predictor_network)
-
+        batches[i].append((state, next_state, action, reward, intrinsic_reward))
 
 
 
