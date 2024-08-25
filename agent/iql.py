@@ -28,10 +28,10 @@ class Agent:
         v_network: nn.Module,
         v_optimizer: torch.optim.Optimizer,
         memory , 
-        algorithm_tau: float = 0.7,
-        beta: float = 3.0,
+        algorithm_tau: float = 0.7, 
+        beta: float = 2.0, 
         max_timesteps: int = 1000000,
-        discount: float = 0.99,
+        discount: float = 0.99, 
         soft_update_lamda: float = 0.005,
         device: str = "cuda",
     ):
@@ -142,11 +142,7 @@ class Agent:
         self.total_it = state_dict["total_it"] 
 
     def act(self , state):
-        achieved_goals = state['achieved_goal']
-        desired_goals = state['desired_goal']
-        observations = state['observation']
-        state_new = np.hstack([observations, achieved_goals, desired_goals])
-        action = self.actor.act(state_new , self.device)
+        action = self.actor.act(state , self.device)
         return action
 
 
