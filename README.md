@@ -13,6 +13,9 @@ python main.py
 ```
 ----
 ## Poster
-[Download SURF 2024 Poster (PDF)](documnet/surf_unsupervised-v2.pdf)
+[Download SURF 2024 Poster](documnet/surf_unsupervised-v2.pdf)
+
+
+![SURF 2024 Poster](documents/surf_unsupervised-v2_page-0001.jpg)
 
 
