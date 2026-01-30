@@ -13,7 +13,6 @@ env = DataCollector(gym.make("PointMaze_UMazeDense-v3", render_mode="rgb_array")
 
 print(env.reset())
 
-
 model = A2C("MultiInputPolicy", env, verbose=1)
 model.learn(total_timesteps=10_000)
 model.replay_buffer = dataset

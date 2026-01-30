@@ -9,12 +9,12 @@ LOG_STD_MIN = -20.0
 LOG_STD_MAX = 2.0
 
 class QFunction(nn.Module):
-    def __init__(self, state_dimension: int, action_dimension: int, hidden_dim: int = 256, n_hidden: int = 2):
+    def __init__(self, state_dimension: int, action_dimension: int, hidden_dim: int = 256, n_hidden: int = 2,dropout=None):
         super().__init__()
         # dims=[state_dimension + action_dimension,hidden_dim,.....,hidden_dim,1] There are n_hidden numbers of hidden_dim
         dims = [state_dimension + action_dimension, *([hidden_dim] * n_hidden), 1]
-        self.q1 = MLP(dims, squeeze_output=True)
-        self.q2 = MLP(dims, squeeze_output=True)
+        self.q1 = MLP(dims, squeeze_output=True,dropout=dropout)
+        self.q2 = MLP(dims, squeeze_output=True,dropout=dropout)
 
     def forward(self, state: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
         return torch.min(*self.both(state, action)) # trick : mitigate overestimation problem
@@ -69,10 +69,10 @@ class Squeeze(nn.Module):
         return x.squeeze(dim=self.dim)
 
 class ValueFunction(nn.Module):
-    def __init__(self, state_dimension: int, hidden_dimension: int = 256, n_hidden: int = 2):
+    def __init__(self, state_dimension: int, hidden_dimension: int = 256, n_hidden: int = 2,dropout=None):
         super().__init__()
         dims = [state_dimension, *([hidden_dimension] * n_hidden), 1]
-        self.v = MLP(dims, squeeze_output=True)
+        self.v = MLP(dims, squeeze_output=True,dropout=dropout)
 
     def forward(self, state: torch.Tensor) -> torch.Tensor:
         return self.v(state)

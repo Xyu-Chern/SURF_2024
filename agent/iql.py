@@ -59,9 +59,13 @@ class Agent:
     def _update_v(self, observations, actions, log_dict) -> torch.Tensor:
         with torch.no_grad():
             q_target= self.q_target(observations, actions)
-        adv_weights=q_target-self.v_network(observations)
+        value = self.v_network(observations)
+        adv_weights=q_target-value
         v_loss = asymmetric_l2_loss(adv_weights, self.algorithm_tau)
         log_dict["value_loss"] = v_loss.item() # get value without tensor
+        log_dict["adv_weights"] = adv_weights.mean().item() # get value without tensor
+        log_dict["q_target"] = q_target.mean().item() # get value without tensor
+        log_dict["value"] = value.mean().item() # get value without tensor
         self.v_optimizer.zero_grad()
         v_loss.backward()
         self.v_optimizer.step()
@@ -69,14 +73,13 @@ class Agent:
 
     def _update_q(self,next_v_value: torch.Tensor,observations: torch.Tensor,actions: torch.Tensor,rewards: torch.Tensor,terminals: torch.Tensor,log_dict: Dict,):
         #  next_v_value.detach() copy the tensor without gradient computation
-        targets = rewards + (1.0 - terminals.float()) * self.discount * next_v_value.detach()
+        targets = rewards +  self.discount * next_v_value.detach() # * (1.0 - terminals.float()) 
         double_q = self.q_network.both(observations, actions)
         q_loss = sum(F.mse_loss(q, targets) for q in double_q) / len(double_q)
         log_dict["q_loss"] = q_loss.item()
         self.q_optimizer.zero_grad()
         q_loss.backward()
         self.q_optimizer.step()
-        soft_update(self.q_target, self.q_network, self.soft_update_lamda)
 
     def _update_policy(self,adv_weights: torch.Tensor,observations: torch.Tensor,actions: torch.Tensor,log_dict: Dict,):
         exp_adv_weights = torch.exp(self.beta * adv_weights.detach()).clamp(max=EXP_ADV_MAX) # clamp function provide a max value if e^ adv_weights over this value
@@ -102,17 +105,18 @@ class Agent:
         batch_states, batch_actions, batch_rewards, batch_next_states , batch_dones = self.memory.sample(batch_size)
         batch_states = batch_states.to(self.device)
         batch_actions = batch_actions.to(self.device)
-        batch_rewards = batch_rewards.to(self.device)
+        batch_rewards = batch_rewards.to(self.device).squeeze(dim=-1) 
         batch_next_states = batch_next_states.to(self.device)
         batch_dones = batch_dones.to(self.device)
 
+        
         log_dict = {}
         with torch.no_grad():
             next_v_value = self.v_network(batch_next_states )
         adv = self._update_v(batch_states, batch_actions, log_dict)
-        batch_rewards =  batch_rewards.squeeze(dim=-1) 
         self._update_q(next_v_value, batch_states,  batch_actions,  batch_rewards, batch_dones, log_dict)
         self._update_policy(adv, batch_states, batch_actions, log_dict)
+        soft_update(self.q_target, self.q_network, self.soft_update_lamda)
         return log_dict
 
     def state_dict(self) -> Dict[str, Any]:
