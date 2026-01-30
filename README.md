@@ -7,7 +7,7 @@ freely, it can gather valuable information and experiences without constant huma
 allow the machine to learn from previously collected data, reducing the need for continuous real-time interaction during the learning process. The goal is to develop intelligent systems that can explore effectively in complex environments, even when direct feedback is limited
 ----
 ## Guidline
-'''
+'''bash
 python main.py
 '''
 ----
