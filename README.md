@@ -6,7 +6,7 @@ explores innovative ways to enable machines to learn and make decisions independ
 freely, it can gather valuable information and experiences without constant human guidance. Additionally, we will investigate methods that
 allow the machine to learn from previously collected data, reducing the need for continuous real-time interaction during the learning process. The goal is to develop intelligent systems that can explore effectively in complex environments, even when direct feedback is limited
 ----
-## Guidline
+## Guideline
 ```bash
 cd run
 python main.py
